@@ -7,4 +7,4 @@ from django.apps import AppConfig
 class BotConfig(AppConfig):
 
     name = 'bot'
-    verbose_name = 'Question and Answer'
+    verbose_name = 'Вопрос - Ответ'
