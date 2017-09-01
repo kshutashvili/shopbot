@@ -29,7 +29,4 @@ activate virtualenv
 
 `source botvenv/bin/activate`
 
-install requirements.txt
------------------
-
-`pip install -r requirements.txt`
+And then `make pip_install`
