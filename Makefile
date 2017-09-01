@@ -1,7 +1,7 @@
 RUN=python manage.py
 
 run:
-	$(RUN) runserver 0.0.0.0:8000
+	$(RUN) runserver
 
 makemigrations:
 	$(RUN) makemigrations
