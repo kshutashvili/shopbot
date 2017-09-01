@@ -3,7 +3,12 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 
-from .models import Question, Answer
+from .models import Question, Answer, Category
+
+
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    prepopulated_fields = {'slug': ('name',)}
 
 
 class QuestionAdmin(admin.ModelAdmin):
@@ -14,5 +19,6 @@ class AnswerAdmin(admin.ModelAdmin):
     list_display = ('question',)
 
 
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Answer, AnswerAdmin)
