@@ -38,7 +38,7 @@ class Question(models.Model):
         verbose_name_plural = 'Вопросы'
 
     def __unicode__(self):
-        return self.text
+        return self.title
 
 
 class Answer(models.Model):
@@ -50,4 +50,4 @@ class Answer(models.Model):
         verbose_name_plural = 'Ответы'
 
     def __unicode__(self):
-        return self.question.text
+        return self.question.title

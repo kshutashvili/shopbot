@@ -11,12 +11,17 @@ class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 
+class AnswerInline(admin.TabularInline):
+    model = Answer
+
+
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('title', 'text',)
+    inlines = (AnswerInline, )
 
 
 class AnswerAdmin(admin.ModelAdmin):
-    list_display = ('question',)
+    list_display = ('question', 'text',)
 
 
 admin.site.register(Category, CategoryAdmin)
