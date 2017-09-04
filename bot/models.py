@@ -24,7 +24,7 @@ class Category(models.Model):
 
 class Question(models.Model):
     category = models.ForeignKey(Category,
-                                related_name='categories',
+                                related_name='questions',
                                 verbose_name='Категория вопроса'
                                 )
     title = models.CharField(max_length=128, verbose_name='Заголовок вопроса')
