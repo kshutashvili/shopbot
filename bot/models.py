@@ -15,8 +15,8 @@ class Category(models.Model):
                             )
 
     class Meta:
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
+        verbose_name = 'Категория вопросов'
+        verbose_name_plural = 'Категории вопросов'
 
     def __unicode__(self):
         return self.name
