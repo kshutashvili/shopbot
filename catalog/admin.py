@@ -18,5 +18,5 @@ class ProductAttributesAdmin(admin.ModelAdmin):
 
 
 @admin.register(Product)
-class Product(admin.ModelAdmin):
-    pass
+class ProductAdmin(admin.ModelAdmin):
+    prepopulated_fields = {'slug': ('name',)}

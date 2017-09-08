@@ -3,3 +3,5 @@ MySQL-python==1.2.5
 Pillow==4.2.1
 pytz==2017.2
 requests==2.18.4
+telepot==12.3
+djangorestframework==3.3.2
