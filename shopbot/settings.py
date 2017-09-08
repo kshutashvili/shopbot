@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import telepot
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,7 +28,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bot.apps.BotConfig',
     'catalog',
-    'orders'
+    'orders',
+    'telegram_bot',
 ]
 
 MIDDLEWARE = [
@@ -133,6 +134,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
+TELEGRAM_BOT_TOKEN = '374769520:AAH-tHqXyDBh5D3ehNLtDhEl1cc12V10dlI'
+WEBHOOK_URL = 'https://2f308bf6.ngrok.io/'
 
 try:
     from local_settings import *
