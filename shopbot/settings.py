@@ -37,10 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 3rd party
+    'rest_framework',
+    # own
     'bot.apps.BotConfig',
     'catalog',
     'orders',
     'telegram_bot',
+    'fb_bot',
 ]
 
 MIDDLEWARE = [
@@ -134,9 +138,13 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
+# telegram settings
 TELEGRAM_BOT_TOKEN = '374769520:AAH-tHqXyDBh5D3ehNLtDhEl1cc12V10dlI'
-
 WEBHOOK_URL = 'https://095c6c0f.ngrok.io'
+
+# messenger settings
+PAGE_ACCESS_TOKEN = "EAAbMCxmMk60BAOyNrIjlZCcZChTZBauSHNIrDcCAjAZAgghaZBwGyHwGLzas5RibDf0ZCAKUucM6QSZA8eggvQsJjkMHxlRbJ0hB3OLdbMppGdHgXkXpOBzWeheWkXPMw441xwK1Rn7wqYhOZBph3pFxmE3I8s7PivjKrxD37wcYq5hswFWxqVp6"
+MESSENGER_TOKEN = "messenger_token"
 
 try:
     from local_settings import *
