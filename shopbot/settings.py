@@ -136,7 +136,7 @@ STATICFILES_DIRS = [
 
 TELEGRAM_BOT_TOKEN = '374769520:AAH-tHqXyDBh5D3ehNLtDhEl1cc12V10dlI'
 
-WEBHOOK_URL = 'https://057e77f3.ngrok.io'
+WEBHOOK_URL = 'https://095c6c0f.ngrok.io'
 
 try:
     from local_settings import *
