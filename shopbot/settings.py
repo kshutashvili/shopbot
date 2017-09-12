@@ -135,6 +135,7 @@ STATICFILES_DIRS = [
 ]
 
 TELEGRAM_BOT_TOKEN = '374769520:AAH-tHqXyDBh5D3ehNLtDhEl1cc12V10dlI'
+
 WEBHOOK_URL = 'https://e1438bbb.ngrok.io'
 
 try:
