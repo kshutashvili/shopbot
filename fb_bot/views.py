@@ -14,7 +14,6 @@ from django.conf import settings
 
 from bot.models import Category, Question, Answer
 from catalog.models import ProductCategory, Product
-from .serializers import CategorySerializer, ProductCategorySerializer, ProductSerializer
 
 
 def get_faq_categories_slugs():
@@ -26,7 +25,7 @@ def get_faq_categories_slugs():
 def get_product_categories_slugs():
         slugs = []
         for category in ProductCategory.objects.all():
-            slugs.append(category.slug)
+            slugs.append(category.name)
         return slugs
 
 def get_product_slugs():
@@ -61,12 +60,12 @@ def post_facebook_message(fbid):
                     {
                         "content_type": "text",
                         "title": "Каталог товаров",
-                        "payload": "PAYLOAD_CATALOG"
+                        "payload": "CATALOG_PAYLOAD"
                     },
                     {
                         "content_type": "text",
                         "title": "Вопросы и Ответы",
-                        "payload": "PAYLOAD_FAQ"
+                        "payload": "FAQ_PAYLOAD"
                     }
                 ]
             }
@@ -87,12 +86,12 @@ def post_main_menu(fbid):
                     {
                         "content_type": "text",
                         "title": "Каталог товаров",
-                        "payload": "PAYLOAD_CATALOG"
+                        "payload": "CATALOG_PAYLOAD"
                     },
                     {
                         "content_type": "text",
                         "title": "Вопросы и Ответы",
-                        "payload": "PAYLOAD_FAQ"
+                        "payload": "FAQ_PAYLOAD"
                     }
                 ]
                 # "attachment":{
@@ -109,30 +108,45 @@ def post_main_menu(fbid):
     pprint(status.json())
 
 
-def post_facebook_message1(fbid, domain):
-    pr = Product.objects.all()
-    products = ProductSerializer(pr, many=True)
+def post_facebook_message1(fbid, category_pk, domain, secure):
+    #pr = Product.objects.all()
+    #products = ProductSerializer(pr, many=True)
+    print "SECURE"
+    print secure
     product_list = []
-    for product in products.data[:3]:
-        print product.items()[0][1]
-        print product.items()[1][1]
-        print product.items()[2][1]
-        print product.items()[3][1]
-        print "".join(["https://", domain, product.items()[1][1]])
+    product_category = ProductCategory.objects.get(pk=category_pk)
+    for product in product_category.products.all():
+        product_descr = product.description if product.description else ""
+        product_size = "Размер: {};".format(product.size) if product.size else ""
+        product_price = "Цена: {};".format(product.price) if product.price else ""
+        for product_attr in product.attributes.all():
+            product_attrs = "{}: {};".format(product_attr.name,
+                                             product_attr.value)
+
+        if secure:
+            product_photo_url = "https://{}{}".format(domain, product.photo.url)
+        else:
+            product_photo_url = "http://{}{}".format(domain, product.photo.url)
+
         product_list.append(
             {
-                "title": product.items()[0][1],
-                "image_url": "http://images.unsplash.com/photo-1440700265116-fe3f91810d72",
-                "subtitle": product.items()[2][1] if product.items()[2][1] else product.items()[3][1],
+                "title": product.name,
+                "image_url": product_photo_url,
+                "subtitle": "{0}\n{1} {2} {3}".format(
+                        product_descr,
+                        product_size,
+                        product_price,
+                        product_attrs
+                    ),
                 "default_action": {
                     "type": "web_url",
-                    "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTKtYBBr8doTiJ7TjTwLgXAq_G7QDZ4HtbWoeWcsi0_ghBHap_QGVdr9k"
+                    "url": product.external_link
                 },
                 "buttons":[
                     {
                         "type": "postback",
-                        "title": "Order",
-                        "payload": "PRODUCT_PAYLOAD"
+                        "title": "Заказать",
+                        "payload": "ORDER_{}".format(product.pk)
                     }
                     # {
                     #     "type": "web_url",
@@ -162,18 +176,17 @@ def post_facebook_message1(fbid, domain):
     pprint(status.json())
 
 
-def post_categories(fbid, queryset):
+def post_product_categories(fbid):
     quick_replies = []
-    print("qqw1")
-    for category in queryset:
+    for category in ProductCategory.objects.all():
         # print category.items()[0][1]
-        print category.items()[1][1]
+        # print category.items()[1][1]
+        print category
         quick_replies.append({
             "content_type": "text",
-            "title": category.items()[0][1],
-            "payload": category.items()[1][1]
+            "title": category.name,
+            "payload": "PCATEGORY_{}".format(category.pk)
         })
-    print("qqw2")
     response_msg = json.dumps(
         {
             "recipient": {"id": fbid},
@@ -187,14 +200,38 @@ def post_categories(fbid, queryset):
     pprint(status.json())
 
 
-def post_questions(fbid, category_slug):
+def post_questions_categories(fbid):
     quick_replies = []
-    current_category = Category.objects.get(slug=category_slug)
+    for category in Category.objects.all():
+        # print category.items()[0][1]
+        # print category.items()[1][1]
+        print category
+        quick_replies.append({
+            "content_type": "text",
+            "title": category.name,
+            "payload": "QCATEGORY_{}".format(category.pk)
+        })
+    response_msg = json.dumps(
+        {
+            "recipient": {"id": fbid},
+            "message": {
+                "text": "Выберите категорию",
+                "quick_replies": quick_replies
+            }
+        }
+    )
+    status = requests.post(post_message_url, params=params, headers=headers, data=response_msg)
+    pprint(status.json())
+
+
+def post_questions(fbid, category_pk):
+    quick_replies = []
+    current_category = Category.objects.get(pk=category_pk)
     for question in current_category.questions.all():
         quick_replies.append({
             "content_type": "text",
             "title": question.title,
-            "payload": question.title
+            "payload": "QUESTION_{}".format(question.pk)
         })
     response_msg = json.dumps(
         {
@@ -208,10 +245,9 @@ def post_questions(fbid, category_slug):
     status = requests.post(post_message_url, params=params, headers=headers, data=response_msg)
 
 
-def post_answer(fbid, question_title):
+def post_answer(fbid, question_pk):
     quick_replies = []
-    answer = Answer.objects.get(question__title=question_title)
-    #print(answer.text)
+    answer = Answer.objects.get(question__pk=question_pk)
     response_msg = json.dumps(
         {
             "recipient": {"id": fbid},
@@ -221,12 +257,12 @@ def post_answer(fbid, question_title):
                     {
                         "content_type": "text",
                         "title": "Каталог товаров",
-                        "payload": "PAYLOAD_CATALOG"
+                        "payload": "CATALOG_PAYLOAD"
                     },
                     {
                         "content_type": "text",
                         "title": "Вопросы и Ответы",
-                        "payload": "PAYLOAD_FAQ"
+                        "payload": "FAQ_PAYLOAD"
                     }
                 ]
             }
@@ -254,33 +290,35 @@ class MessengerBot(generic.View):
         #print request.META['HTTP_HOST']
         for entry in incomming_message['entry']:
             if 'standby' in entry:
-                print "ENTRY"
-                print entry
                 post_facebook_message(entry['standby'][0]['sender']['id'])
                 return HttpResponse()
             for message in entry['messaging']:
                 if 'message' in message:
                     #pprint(message)
                     if 'quick_reply' in message['message']:
-                        current_payload = message['message']['quick_reply']['payload']
-                        print(current_payload)
-                        if current_payload == "PAYLOAD_FAQ":
-                            cats = Category.objects.all()
-                            serialized_cats = CategorySerializer(cats, many=True)
-                            post_categories(message['sender']['id'], serialized_cats.data)
+                        payload = message['message']['quick_reply']['payload']
+                        print(payload)
+                        if "_" in payload:
+                            payload, item = payload.split("_")
+                        if payload == "FAQ":
+                            #cats = Category.objects.all()
+                            #serialized_cats = CategorySerializer(cats, many=True)
+                            post_questions_categories(message['sender']['id'])
                             return HttpResponse()
-                        elif current_payload == "PAYLOAD_CATALOG":
-                            print("qwqwqwqwq")
-                            cats = ProductCategory.objects.all()
-                            serialized_cats = ProductCategorySerializer(cats, many=True)
-                            post_categories(message['sender']['id'], serialized_cats.data)
-                        elif current_payload in get_faq_categories_slugs():
-                            post_questions(message['sender']['id'], current_payload)
-                        elif current_payload in get_questions_titles():
-                            post_answer(message['sender']['id'], current_payload)
-                        elif current_payload in get_product_categories_slugs():
-                            post_facebook_message1(message['sender']['id'], request.META['HTTP_HOST'])
-                        elif current_payload == 'BOT_START':
+                        elif payload == "CATALOG":
+                            #cats = ProductCategory.objects.all()
+                            #serialized_cats = ProductCategorySerializer(cats, many=True)
+                            post_product_categories(message['sender']['id'])
+                        elif payload == "PCATEGORY":
+                            post_facebook_message1(message['sender']['id'],
+                                                   item,
+                                                   request.META['HTTP_HOST'],
+                                                   request.is_secure())
+                        elif payload == "QCATEGORY":
+                            post_questions(message['sender']['id'], item)
+                        elif payload == "QUESTION":
+                            post_answer(message['sender']['id'], item)
+                        elif payload == 'BOT_START':
                             post_main_menu(message['sender']['id'])
 
                     elif 'text' in message['message']:
