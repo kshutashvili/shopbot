@@ -21,5 +21,5 @@ from django.conf.urls.static import static
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('telegram_bot.urls')),
-    url(r'^fb_bot', include('fb_bot.urls')),
+    url(r'^fb_bot', include('fb_bot.urls', namespace="fb")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

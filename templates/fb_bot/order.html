@@ -1,0 +1,28 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Оформление заказа</title>
+	<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+	<div class="container">
+		<p class="title">Для заказа укажите следующие данные</p>
+		<br />
+		<form action="" class="order-form" method="POST">
+			{% csrf_token %}
+			{{ form.product }}
+			{{ form.product.errors }}
+			{{ form.customer_name }}
+			{{ form.customer_name.errors }}
+			<br />
+			{{ form.customer_phone }}
+			{{ form.customer_phone.errors }}
+			<br />
+			<button type="submit" id="btn">Заказать</button>
+		</form>
+	</div>
+</body>
+</html>
