@@ -157,17 +157,19 @@ class CommandReceiveView(View):
                     elif mark == 'products':
 
                         products = self.products.filter(category__id=data)
-                        url = 'https://missmexx.ru/shop/product/'
                         for item in products:
                             attrs = self.attributes.filter(products=item)
-                            # b = PhotoSize(file_id=item.photo, height=30)
+                            link = ""
+                            if item.external_link != "":
+                                link = '\n\U0001F4CE {}'.format(
+                                        item.external_link)
+                            name_price = '{}\nЦена: {} руб\n'.format(
+                                          item.name, item.price)
+                            attrs_str = '\n'.join([attr.name + ": " + \
+                                        attr.value for attr in attrs])
                             bot.sendPhoto(
                                 chat_id=chat_id,
-                                caption='{}\nЦена: {} руб\n'.format(item.name, item.price) + \
-                                '\n'.join(
-                                    [attr.name + ": " + \
-                                    attr.value for attr in attrs]) + \
-                                '\n\U0001F4CE {}{}-{}'.format(url, item.slug, slugify(item.code)),
+                                caption='{}{}{}'.format(name_price, attrs_str, link),
                                 photo=item.photo,
                                 reply_markup=self._get_product_menu(item.id),
                             )
@@ -191,7 +193,7 @@ class CommandReceiveView(View):
                         )
 
                     elif mark == 'questions':
-                        # data = category__slug
+                        # data: category__slug
                         keyboard = self._get_questions(data)
                         msg = "*Выберите вопрос:*"
                         bot.sendMessage(
@@ -201,7 +203,7 @@ class CommandReceiveView(View):
                             reply_markup=keyboard,
                         )
                     elif mark == 'answer':
-                        # data = question__id
+                        # data: question__id
                         answer = self._get_answer(data)
                         keyboard = self._get_main_menu()
                         msg = "*Ответ:*"
@@ -219,7 +221,6 @@ class CommandReceiveView(View):
                 bot.sendMessage(
                             chat_id=chat_id,
                             text=msg,
-                            # parse_mode='Markdown',
                             reply_markup=keyboard,
                         )
         return JsonResponse({}, status=200)
