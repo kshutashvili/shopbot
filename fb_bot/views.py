@@ -31,7 +31,7 @@ def post_main_menu(fbid):
         {
             "recipient": {"id": fbid},
             "message": {
-                "text": "Что вас интересует???",
+                "text": "Что вас интересует?",
                 "quick_replies": [
                     {
                         "content_type": "text",
@@ -107,8 +107,8 @@ def post_product_list(fbid, category_pk, domain, secure):
                 "buttons":[
                     {
                         "type": "web_url",
-                        "title": "ORDER",
-                        "url": "https://37a84d43.ngrok.io/fb_bot/order/{}".format(product.pk),
+                        "title": "Заказать",
+                        "url": "https://{}/fb_bot/order/{}".format(domain, product.pk),
                         "webview_height_ratio": "tall"
                     }
                 ]
