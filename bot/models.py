@@ -30,7 +30,8 @@ class Question(models.Model):
     title = models.CharField(max_length=128, verbose_name='Заголовок вопроса')
     text = models.TextField(
                             max_length=1024,
-                            verbose_name='Дополнительный текст'
+                            verbose_name='Дополнительный текст',
+                            blank=True
                             )
 
     class Meta:

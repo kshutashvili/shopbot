@@ -7,7 +7,8 @@ from django.db import models
 class ProductCategory(models.Model):
     name = models.CharField("Название категории",
                             max_length=128)
-    description = models.TextField("Описание категории")
+    description = models.TextField("Описание категории",
+                                   blank=True)
 
     class Meta:
         verbose_name = "Категория товаров"
@@ -37,8 +38,7 @@ class Product(models.Model):
                                  related_name="products",
                                  verbose_name="Категория товара")
     name = models.CharField("Название",
-                            max_length=128,
-                            blank=True)
+                            max_length=128)
     slug = models.SlugField('Ссылка-метка',
                             max_length=64,
                             unique=True)
@@ -58,10 +58,13 @@ class Product(models.Model):
     price = models.DecimalField("Цена",
                                 max_digits=12,
                                 decimal_places=2,
-                                blank=True)
+                                blank=True,
+                                null=True)
     attributes = models.ManyToManyField(ProductAttributes,
                                         related_name="products",
-                                        verbose_name="Дополнительные атрибуты")
+                                        verbose_name="Дополнительные атрибуты",
+                                        blank=True,
+                                        null=True)
 
     class Meta:
         verbose_name = "Товар"

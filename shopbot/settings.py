@@ -140,7 +140,7 @@ STATICFILES_DIRS = [
 
 # telegram settings
 TELEGRAM_BOT_TOKEN = '374769520:AAH-tHqXyDBh5D3ehNLtDhEl1cc12V10dlI'
-WEBHOOK_URL = 'https://cf216926.ngrok.io'
+WEBHOOK_URL = 'https://phonxis.com'
 
 # messenger settings
 PAGE_ACCESS_TOKEN = "EAAbMCxmMk60BAOyNrIjlZCcZChTZBauSHNIrDcCAjAZAgghaZBwGyHwGLzas5RibDf0ZCAKUucM6QSZA8eggvQsJjkMHxlRbJ0hB3OLdbMppGdHgXkXpOBzWeheWkXPMw441xwK1Rn7wqYhOZBph3pFxmE3I8s7PivjKrxD37wcYq5hswFWxqVp6"

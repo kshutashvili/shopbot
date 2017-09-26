@@ -80,7 +80,7 @@ def post_product_list(fbid, category_pk, domain, secure):
     for product in product_category.products.all():
         product_descr = product.description if product.description else ""
         product_size = "Размер: {};".format(product.size) if product.size else ""
-        product_price = "Цена: {};".format(product.price) if product.price else ""
+        product_price = "Цена: {} руб.;".format(product.price) if product.price else ""
         for product_attr in product.attributes.all():
             product_attrs = "{}: {};".format(product_attr.name,
                                              product_attr.value)
