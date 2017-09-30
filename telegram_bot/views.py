@@ -1,28 +1,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import os
 import json
-import pickle
 import telepot
-from slugify import slugify
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton, \
-    CallbackQuery, PhotoSize, Contact, ReplyKeyboardMarkup, KeyboardButton, \
-    ReplyKeyboardRemove
+    ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
-from django.shortcuts import render
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.conf import settings
-
-from rest_framework.renderers import JSONRenderer
+from django.core.exceptions import ObjectDoesNotExist
 
 from bot.models import Question, Answer, Category
 from catalog.models import ProductCategory, ProductAttributes, Product
 from orders.models import Order
-
+from .models import TelegramOrder
 
 bot = telepot.Bot(settings.TELEGRAM_BOT_TOKEN)
 bot.setWebhook(settings.WEBHOOK_URL)
@@ -35,7 +29,6 @@ class CommandReceiveView(View):
     product_categories = ProductCategory.objects.all()
     products = Product.objects.all()
     attributes = ProductAttributes.objects.all()
-    order = 'telegram_bot/templates/order/order_{}.txt'
 
     def post(self, request):
         raw = request.body.decode('UTF8')
@@ -55,34 +48,30 @@ class CommandReceiveView(View):
             contact = update['message'].get('contact')
             if contact:
                 phone_number = contact['phone_number']
-                with open(self.order.format(chat_id), 'a+') as file:
-                    if len(file.readlines()) < 2:
-                        file.write(phone_number)
-                    file.close()
-                with open(self.order.format(chat_id), 'r') as file:
-                    order = ""
-                    c = 0
-                    for line in file:
-                        c = c + 1
-                        if c == 1:
-                            order = line.strip()
-                    file.close()
+                try:
+                    order = TelegramOrder.objects.get(customer_id=chat_id)
+                    order.customer_phone = phone_number
+                    order.save()
+                    keyboard = ReplyKeyboardRemove()
+                    bot.sendMessage(
+                        chat_id=chat_id,
+                        text="Подтвердите Ваш заказ:",
+                        reply_markup=keyboard,
+                    )
+                    product = Product.objects.get(id=order.product.id)
+                    msg = "Продукт: {},\nНомер телефона: {},\nЦена: {} руб."
+                    keyboard = self._confirmation()
+                    bot.sendMessage(
+                        chat_id=chat_id,
+                        text=msg.format(product.name, phone_number, product.price),
+                        reply_markup=keyboard,
+                    )
 
-                    if order != "":
-                        keyboard = ReplyKeyboardRemove()
-                        bot.sendMessage(
-                            chat_id=chat_id,
-                            text="Спасибо!",
-                            reply_markup=keyboard,
-                        )
-                        product = Product.objects.get(id=order)
-                        msg = "Подтвердите Ваш заказ:\nАртикул продукта: {},\nНомер телефона: {}"
-                        keyboard = self._confirmation()
-                        bot.sendMessage(
-                            chat_id=chat_id,
-                            text=msg.format(product.code, phone_number),
-                            reply_markup=keyboard,
-                        )
+                except ObjectDoesNotExist:
+                    bot.sendMessage(
+                        chat_id=chat_id,
+                        text="Сначала выберите продукт!",
+                    )
 
             if command == '/help':
                 bot.sendMessage(chat_id, '*TODO: help*', parse_mode='Markdown')
@@ -97,21 +86,14 @@ class CommandReceiveView(View):
                     reply_markup=keyboard,
                 )
 
-
             elif callback_data:
                 if callback_data == "confirmed":
                     try:
-                        with open(self.order.format(chat_id), 'r') as file:
-                            product_id, phone_number = "", ""
-                            c = 0
-                            for line in file:
-                                c = c + 1
-                                if c == 1:
-                                    product_id = line.strip()
-                                if c == 2:
-                                    phone_number = line
-                            file.close()
-                        order = self._create_an_order(product_id, phone_number)
+                        telegram_order = TelegramOrder.objects.get(customer_id=chat_id)
+                        order = self._create_an_order(
+                            telegram_order.product.id,
+                            telegram_order.customer_phone
+                        )
                         keyboard = self._get_main_menu()
                         msg = "*Ваш заказ принят! Номер заказа: {}*"
                         bot.sendMessage(
@@ -120,20 +102,12 @@ class CommandReceiveView(View):
                             parse_mode='Markdown',
                             reply_markup=keyboard,
                         )
-                        path = os.path.join(
-                                os.path.abspath(os.path.dirname(__file__)),
-                                'templates/order/order_{}.txt')
-                        os.remove(path.format(chat_id))
-                    except IOError as e:
-                        keyboard = self._get_main_menu()
-                        msg = "*Ваш заказ уже подтвержден!*"
+                        TelegramOrder.objects.get(customer_id=chat_id).delete()
+                    except ObjectDoesNotExist:
                         bot.sendMessage(
                             chat_id=chat_id,
-                            text=msg,
-                            parse_mode='Markdown',
-                            reply_markup=keyboard,
+                            text="Сначала выберите продукт!",
                         )
-
                 else:
                     mark, data = callback_data.split('_')
                     if mark == 'categories':
@@ -155,7 +129,6 @@ class CommandReceiveView(View):
                             reply_markup=keyboard,
                         )
                     elif mark == 'products':
-
                         products = self.products.filter(category__id=data)
                         for item in products:
                             attrs = self.attributes.filter(products=item)
@@ -181,9 +154,15 @@ class CommandReceiveView(View):
                             reply_markup=keyboard,
                         )
                     elif mark == 'order':
-                        with open(self.order.format(chat_id), 'w') as order:
-                            order.write(str(data)+"\n")
-                            order.close()
+                        try:
+                            order = TelegramOrder.objects.get(customer_id=chat_id)
+                            order.product_id = data
+                            order.save()
+                        except ObjectDoesNotExist:
+                            order = TelegramOrder.objects.create(
+                                customer_id=chat_id,
+                                product_id=data,
+                            )
                         keyboard = self._get_phone()
                         bot.sendMessage(
                             chat_id=chat_id,

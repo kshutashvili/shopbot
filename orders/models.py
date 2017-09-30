@@ -23,4 +23,4 @@ class Order(models.Model):
         verbose_name_plural = "Заказы"
 
     def __unicode__(self):
-        return self.customer_phone
+        return self.customer_phone + " №" + str(self.id)
